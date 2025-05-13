@@ -1,0 +1,14 @@
+apiVersion: kustomize.tookit.fluxcd.io/v1
+kind: Kustomization
+namespace: linkding
+resources:
+  - ../../base/linkding
+spec:
+  interval: 1m
+  retryInterval: 1m
+  timeout: 1m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: "./apps/staging/linkding"
+  prune: true
