@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: linkding
+spec:
+  ports:
+    - port: 9090 # Port to expose and should match the containerPort in the deployment
+  selector:
+    app: linkding  # This should match the label in the deployment at spec/template/metadata/labels/app
+      # This is how the service know that needs to look for that specific application on that port.
+  type: ClusterIP
+  # The type of service. ClusterIP is the default and is used for internal communication.
+  # If you want to expose it externally, you might want to use LoadBalancer or NodePort.
