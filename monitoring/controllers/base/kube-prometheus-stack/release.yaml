@@ -54,6 +54,6 @@ spec:
         ## Secret must be manually created in the namespace
         ##
         tls:
-          - secretName: grafana-general-tls
+          - secretName: grafana-tls-secret
             hosts:
             - grs.experientialabs.net
