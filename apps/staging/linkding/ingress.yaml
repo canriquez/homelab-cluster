@@ -5,7 +5,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: lds.mischavandenburg.net
+    - host: ldng.churles.dev
       http:
         paths:
           - backend:
