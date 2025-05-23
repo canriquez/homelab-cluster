@@ -6,3 +6,5 @@ resources:
   - cloudflare.yaml
   - test-secret.yaml
   - tunnel-credentials.yaml
+  - superuser-credentials.yaml
+  
