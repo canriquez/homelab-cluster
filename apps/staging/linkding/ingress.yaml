@@ -5,7 +5,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: ldng.churles.dev
+    - host: ld.experientialabs.net
       http:
         paths:
           - backend:
