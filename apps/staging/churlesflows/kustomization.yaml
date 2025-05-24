@@ -3,8 +3,8 @@ kind: Kustomization
 namespace: churlesflows
 resources:
   - ../../base/churlesflows
-  #- cloudflare.yaml
-  #- cloudflare-secret.yaml
+  - cloudflare.yaml
+  - n8n-cloudflare-secret.yaml
   #- linkding-container-env-secret.yaml
-  #- ingress.yaml
+  #- ingress.yaml # Using secure cookies is not possible to access with cloudflare/internal ip
   

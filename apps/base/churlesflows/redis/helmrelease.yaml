@@ -1,17 +1,17 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: postgresql
+  name: redis
   namespace: churlesflows
 spec:
   interval: 30m
   chart:
     spec:
-      chart: postgresql
-      version: 16.7.x
+      chart: redis
+      version: 18.1.x
       sourceRef:
         kind: HelmRepository
-        name: bitnami-postgresql
+        name: bitnami-redis
         namespace: churlesflows
       interval: 12h
   install:
@@ -19,15 +19,16 @@ spec:
       retries: 3
   valuesFrom:
     - kind: Secret
-      name: postgres-churlesflow-secret
+      name: redis-churlesflow-secret
       valuesKey: values.yaml
-
   values:
-    primary:
+    architecture: standalone
+    auth:
+      enabled: true
+    master:
       persistence:
         enabled: true
-        size: 20Gi
-
+        size: 5Gi
     metrics:
       enabled: true
       serviceMonitor:
@@ -36,3 +37,4 @@ spec:
         interval: 30s
         labels:
           release: kube-prometheus-stack
+

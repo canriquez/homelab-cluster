@@ -5,3 +5,9 @@ resources:
   - ./postgres/repository.yaml
   - ./postgres/helmrelease.yaml
   - ./secrets/postgres-churlesflow-secret.yaml
+  - ./redis/repository.yaml
+  - ./redis/helmrelease.yaml
+  - ./secrets/redis-churlesflow-secret.yaml
+  - ./n8n/repository.yaml
+  - ./n8n/helmrelease.yaml
+  - ./secrets/n8n-env-secret.yaml
