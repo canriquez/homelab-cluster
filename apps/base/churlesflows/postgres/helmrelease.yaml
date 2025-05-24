@@ -17,14 +17,13 @@ spec:
   install:
     remediation:
       retries: 3
-  valuesFrom:
-    - kind: Secret
-      name: postgres-churlesflow-secret
-      valuesKey: values.yaml
+  #valuesFrom:
+  #  - kind: Secret
+  #    name: postgres-churlesflow-secret
+  #    valuesKey: values.yaml
 
   values:
     postgresql:
-      database: n8n-churlesflow
       persistence:
         enabled: true
         size: 20Gi 
