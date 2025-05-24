@@ -1,8 +1,9 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
-  name: bitnami
+  name: bitnami-postgresql
   namespace: churlesflows
 spec:
-  interval: 12h
-  url: https://charts.bitnami.com/bitnami
+  type: oci
+  interval: 24h
+  url: oci://registry-1.docker.io/bitnamicharts
