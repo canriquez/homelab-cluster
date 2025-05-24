@@ -8,11 +8,11 @@ spec:
   chart:
     spec:
       chart: postgresql
+      version: 16.7.x
       sourceRef:
         kind: HelmRepository
-        name: bitnami-postgresql
+        name: bitnami
         namespace: churlesflows
-      version: 16.7.x
       interval: 12h
   install:
     remediation:
@@ -22,7 +22,6 @@ spec:
     - kind: Secret
       name: postgres-churlesflow-secret
       valuesKey: values.yaml
-
   values:
     postgresql:
       database: n8n-churlesflow
