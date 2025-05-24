@@ -24,6 +24,7 @@ spec:
 
   values:
     postgresql:
+      password: "19fiance20"
       persistence:
         enabled: true
         size: 20Gi 
