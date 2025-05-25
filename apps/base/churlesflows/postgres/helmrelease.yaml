@@ -17,14 +17,16 @@ spec:
   install:
     remediation:
       retries: 3
-  #valuesFrom:
-  #  - kind: Secret
-  #    name: postgres-churlesflow-secret
-  #    valuesKey: values.yaml
+  valuesFrom:
+    - kind: Secret
+      name: postgres-churlesflow-secret
+      valuesKey: values.yaml
 
   values:
     postgresql:
-      password: "19fiance20"
       persistence:
         enabled: true
         size: 20Gi 
+
+
+#yAyA6FqHn5
