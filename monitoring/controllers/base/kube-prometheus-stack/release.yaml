@@ -37,7 +37,7 @@ spec:
 
       grafana.ini:
         smtp:
-          enable: true
+          enabled: true
           host: smtp-relay.brevo.com:587
           user: a59261001@smtp-brevo.com
           from_address: a59261001@smtp-brevo.com
