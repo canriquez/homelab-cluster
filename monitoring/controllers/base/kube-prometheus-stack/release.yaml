@@ -28,9 +28,25 @@ spec:
       - paths: ["/metadata/annotations/prometheus-operator-validated"]
         target:
           kind: PrometheusRule
+  valuesFrom:
+    - kind: Secret
+      name: grafana-smtp-credentials
+      valuesKey: smtp-password
+      targetPath: "grafana.grafana\\.ini.smtp.password"
+
   values:
     grafana:
       adminPassword: canriquez
+
+      grafana.ini:
+        smtp:
+          enable: true
+          host: smtp-relay.brevo.com:587
+          user: a59261001@smtp-brevo.com
+          from_address: a59261001@smtp-brevo.com
+          from_name: Grafana Home Lab Monitoring
+          startTLS_policy: MandatoryStartTLS
+
       ingress:
         enabled: true
         ingressClassName: traefik
