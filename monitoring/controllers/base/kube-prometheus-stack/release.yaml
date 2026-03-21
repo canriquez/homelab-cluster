@@ -43,7 +43,7 @@ spec:
           from_address: a59261001@smtp-brevo.com
           from_name: Grafana Home Lab Monitoring
           startTLS_policy: MandatoryStartTLS
-          password: $__env{smtp-password}
+          password: $__env{SMTP_PASSWORD}
 
       ingress:
         enabled: true
