@@ -40,8 +40,8 @@ spec:
           enabled: true
           host: smtp-relay.brevo.com:587
           user: a59261001@smtp-brevo.com
-          from_address: a59261001@smtp-brevo.com
-          from_name: Grafana Home Lab Monitoring
+          from_address: bot@experientialabs.net
+          from_name: ElBot Grafana Monitoring
           startTLS_policy: MandatoryStartTLS
           password: $__env{SMTP_PASSWORD}
 
