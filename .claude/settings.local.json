@@ -6,7 +6,8 @@
       "Bash(grep -h \"kind:\" /Volumes/HOMEX/Carlos1/coding/2025/homelab-cluster/**/*.yaml)",
       "Bash(kubectl config:*)",
       "Bash(flux get:*)",
-      "Bash(kubectl get:*)"
+      "Bash(kubectl get:*)",
+      "Bash(kubectl describe:*)"
     ]
   }
 }
