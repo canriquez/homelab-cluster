@@ -91,8 +91,8 @@ spec:
       messageTemplate: |
         chore: update rayces images
 
-        - backend: {{range .Updated.Images}}{{if contains .Name "rayces-backend"}}{{.NewTag}}{{end}}{{end}}
-        - frontend: {{range .Updated.Images}}{{if contains .Name "rayces-frontend"}}{{.NewTag}}{{end}}{{end}}
+        - backend: {{range .Changed.Changes}}{{if contains .ImageRef.Name "rayces-backend"}}{{.NewValue}}{{end}}{{end}}
+        - frontend: {{range .Changed.Changes}}{{if contains .ImageRef.Name "rayces-frontend"}}{{.NewValue}}{{end}}{{end}}
     push:
       branch: main
   update:
