@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc -l /Volumes/HOMEX/Carlos1/coding/2025/homelab-cluster/**/*.yaml)",
+      "Bash(xargs cat:*)",
+      "Bash(grep -h \"kind:\" /Volumes/HOMEX/Carlos1/coding/2025/homelab-cluster/**/*.yaml)"
+    ]
+  }
+}

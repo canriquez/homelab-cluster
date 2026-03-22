@@ -33,7 +33,7 @@ spec:
     grafana:
       adminPassword: canriquez
 
-      envFormSecret: grafana-smtp-credentials
+      envFromSecret: grafana-smtp-credentials
 
       grafana.ini:
         smtp:
