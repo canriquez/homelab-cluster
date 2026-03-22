@@ -88,11 +88,7 @@ spec:
       author:
         name: flux-image-automation
         email: flux@experientialabs.net
-      messageTemplate: |
-        chore: update rayces images
-
-        {{range .Changed.Changes}}- {{.ImageID}}: {{.NewValue}}
-        {{end}}
+      messageTemplate: 'chore: update rayces images'
     push:
       branch: main
   update:
