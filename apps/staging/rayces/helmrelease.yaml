@@ -1,0 +1,58 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: rayces
+  namespace: rayces-production
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: charts/rayces
+      sourceRef:
+        kind: GitRepository
+        name: rayces-v3
+        namespace: flux-system
+      interval: 1m
+  values:
+    global:
+      namespace: rayces-production
+      secretName: raycesv3-environment
+
+    images:
+      backend:
+        repository: ghcr.io/canriquez/rayces-backend
+        tag: "f5e7ad7"          # Update this manually on each deploy
+        pullPolicy: Always
+        pullSecret: ghcr-credentials
+      frontend:
+        repository: ghcr.io/canriquez/rayces-frontend
+        tag: "f5e7ad7"          # Update this manually on each deploy
+        pullPolicy: Always
+        pullSecret: ghcr-credentials
+
+    rails:
+      replicas: 2
+      env: production
+      autoSeed: false
+
+    sidekiq:
+      concurrency: "10"
+
+    nextjs:
+      replicas: 2
+      command: ["node", "server.js"]
+      nodeEnv: production
+
+    mailcatcher:
+      enabled: false
+
+    cloudflare:
+      enabled: true
+      replicas: 2
+      tunnel: rayces-production
+      ingress:
+        appHostname: citas.rayces.com
+
+    postgres:
+      metrics:
+        enabled: false  # Set to true after postgres_exporter sidecar is added to the Helm chart in rayces-v3

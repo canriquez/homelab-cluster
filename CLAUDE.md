@@ -132,6 +132,32 @@ flux get helmreleases -A
 flux logs --follow
 ```
 
+## Documentation Strategy
+
+All documentation lives under `docs/` and is organized by domain. When creating new docs, follow this structure:
+
+```
+docs/
+├── monitoring/                  # Grafana, Prometheus, alerting
+│   ├── grafana-smtp.md          # SMTP / email notification setup
+│   └── dashboards/              # One file per Grafana dashboard
+│       └── rayces-prd-overview.md
+├── apps/                        # Per-application operational docs
+│   └── <app-name>/
+└── infrastructure/              # Cluster-level concerns (ingress, secrets, DNS)
+```
+
+### Rules for docs
+
+- **One file per logical topic.** Don't mix unrelated concerns in one file.
+- **Dashboards get their own file** under `docs/monitoring/dashboards/<dashboard-uid>.md`.
+- **Each doc must include:** overview, architecture or context, configuration details, and a troubleshooting section where relevant.
+- **Cross-reference related docs** using relative Markdown links.
+- **Grafana dashboards provisioned manually** (not via ConfigMap) must be documented here since they are not version-controlled elsewhere.
+- When a new service, integration, or Grafana dashboard/alert set is configured, create or update the corresponding doc in `docs/`.
+
+---
+
 ## Key Constraints
 
 - **Single environment:** Only `staging` exists. Do not create `prod/` or `dev/` paths without discussion.

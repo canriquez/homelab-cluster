@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# Note: no top-level namespace override — each resource defines its own namespace
+# (github-secret is in flux-system; all other resources are in rayces-production)
+resources:
+  - namespace.yaml
+  - gitrepository.yaml
+  - helmrelease.yaml
+  - secrets/environment-secret.yaml
+  - secrets/ghcr-secret.yaml
+  - secrets/tunnel-secret.yaml
+  - secrets/github-secret.yaml

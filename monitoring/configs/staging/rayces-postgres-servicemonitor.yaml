@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: postgres-rayces-production
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack   # Must match Prometheus serviceMonitorSelector
+spec:
+  namespaceSelector:
+    matchNames:
+      - rayces-production
+  selector:
+    matchLabels:
+      app: postgres-rayces
+      component: metrics
+  endpoints:
+    - port: http-metrics
+      interval: 30s
+      scrapeTimeout: 10s
