@@ -48,4 +48,11 @@ spec:
         appHostname: citas.rayces.com
     postgres:
       metrics:
-        enabled: false # Set to true after postgres_exporter sidecar is added to the Helm chart in rayces-v3
+        enabled: true
+      resources:
+        requests:
+          memory: "256Mi"
+          cpu: "100m"
+        limits:
+          memory: "1Gi"
+          cpu: "1000m"
