@@ -17,42 +17,35 @@ spec:
     global:
       namespace: rayces-production
       secretName: raycesv3-environment
-
     images:
       backend:
         repository: ghcr.io/canriquez/rayces-backend
-        tag: "f5e7ad7" # {"$imagepolicy": "flux-system:rayces-backend"}
+        tag: "ghcr.io/canriquez/rayces-backend:20260322-a2a5127" # {"$imagepolicy": "flux-system:rayces-backend"}
         pullPolicy: Always
         pullSecret: ghcr-credentials
       frontend:
         repository: ghcr.io/canriquez/rayces-frontend
-        tag: "f5e7ad7" # {"$imagepolicy": "flux-system:rayces-frontend"}
+        tag: "ghcr.io/canriquez/rayces-frontend:20260322-a2a5127" # {"$imagepolicy": "flux-system:rayces-frontend"}
         pullPolicy: Always
         pullSecret: ghcr-credentials
-
     rails:
       replicas: 2
       env: production
       autoSeed: false
-
     sidekiq:
       concurrency: "10"
-
     nextjs:
       replicas: 2
       command: ["node", "server.js"]
       nodeEnv: production
-
     mailcatcher:
       enabled: false
-
     cloudflare:
       enabled: true
       replicas: 2
       tunnel: rayces-production
       ingress:
         appHostname: citas.rayces.com
-
     postgres:
       metrics:
-        enabled: false  # Set to true after postgres_exporter sidecar is added to the Helm chart in rayces-v3
+        enabled: false # Set to true after postgres_exporter sidecar is added to the Helm chart in rayces-v3
