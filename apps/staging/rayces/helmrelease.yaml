@@ -21,12 +21,12 @@ spec:
     images:
       backend:
         repository: ghcr.io/canriquez/rayces-backend
-        tag: "f5e7ad7"          # Update this manually on each deploy
+        tag: "f5e7ad7" # {"$imagepolicy": "flux-system:rayces-backend"}
         pullPolicy: Always
         pullSecret: ghcr-credentials
       frontend:
         repository: ghcr.io/canriquez/rayces-frontend
-        tag: "f5e7ad7"          # Update this manually on each deploy
+        tag: "f5e7ad7" # {"$imagepolicy": "flux-system:rayces-frontend"}
         pullPolicy: Always
         pullSecret: ghcr-credentials
 

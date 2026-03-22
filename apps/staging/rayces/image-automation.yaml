@@ -1,0 +1,100 @@
+---
+# GitRepository with write access — used by ImageUpdateAutomation to commit tag updates back to homelab-cluster
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: homelab-cluster-write
+  namespace: flux-system
+spec:
+  interval: 1m
+  url: ssh://git@github.com/canriquez/homelab-cluster
+  ref:
+    branch: main
+  secretRef:
+    name: flux-write-credentials
+---
+# ImageRepository — watches ghcr.io for new rayces-backend tags
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: rayces-backend
+  namespace: flux-system
+spec:
+  image: ghcr.io/canriquez/rayces-backend
+  interval: 1m
+  secretRef:
+    name: ghcr-flux-system-credentials
+---
+# ImageRepository — watches ghcr.io for new rayces-frontend tags
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: rayces-frontend
+  namespace: flux-system
+spec:
+  image: ghcr.io/canriquez/rayces-frontend
+  interval: 1m
+  secretRef:
+    name: ghcr-flux-system-credentials
+---
+# ImagePolicy — selects latest rayces-backend tag by alphabetical order
+# Tag format: YYYYMMDD-<sha> (e.g. 20260322-f5e7ad7)
+# Alphabetical ascending picks the lexicographically last = most recently built
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: rayces-backend
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: rayces-backend
+  filterTags:
+    pattern: '^[0-9]{8}-[a-f0-9]+'
+  policy:
+    alphabetical:
+      order: asc
+---
+# ImagePolicy — selects latest rayces-frontend tag by alphabetical order
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: rayces-frontend
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: rayces-frontend
+  filterTags:
+    pattern: '^[0-9]{8}-[a-f0-9]+'
+  policy:
+    alphabetical:
+      order: asc
+---
+# ImageUpdateAutomation — commits new image tags back to homelab-cluster when policies fire
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageUpdateAutomation
+metadata:
+  name: rayces
+  namespace: flux-system
+spec:
+  interval: 1m
+  sourceRef:
+    kind: GitRepository
+    name: homelab-cluster-write
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        name: flux-image-automation
+        email: flux@experientialabs.net
+      messageTemplate: |
+        chore: update rayces images
+
+        - backend: {{range .Updated.Images}}{{if contains .Name "rayces-backend"}}{{.NewTag}}{{end}}{{end}}
+        - frontend: {{range .Updated.Images}}{{if contains .Name "rayces-frontend"}}{{.NewTag}}{{end}}{{end}}
+    push:
+      branch: main
+  update:
+    strategy: Setters
+    path: ./apps/staging/rayces

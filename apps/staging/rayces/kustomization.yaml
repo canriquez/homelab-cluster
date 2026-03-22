@@ -6,7 +6,10 @@ resources:
   - namespace.yaml
   - gitrepository.yaml
   - helmrelease.yaml
+  - image-automation.yaml
   - secrets/environment-secret.yaml
   - secrets/ghcr-secret.yaml
   - secrets/tunnel-secret.yaml
   - secrets/github-secret.yaml
+  - secrets/image-automation-git-secret.yaml
+  - secrets/ghcr-flux-system-secret.yaml

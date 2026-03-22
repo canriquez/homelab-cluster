@@ -144,6 +144,8 @@ docs/
 │       └── rayces-prd-overview.md
 ├── apps/                        # Per-application operational docs
 │   └── <app-name>/
+├── deployments/                 # Point-in-time deployment reports
+│   └── rayces-production-initial-deploy.md
 └── infrastructure/              # Cluster-level concerns (ingress, secrets, DNS)
 ```
 
