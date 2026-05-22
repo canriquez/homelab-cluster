@@ -32,12 +32,43 @@ spec:
       replicas: 2
       env: production
       autoSeed: false
+      # 20-concurrent-user headroom. Live state before this change sat at
+      # 83-85% of the chart-default 768Mi limit, leaving ~120Mi per pod —
+      # too thin for traffic spikes or large queries. Doubling the limit
+      # to 1536Mi gives ~37% headroom; bumping request from 512Mi to 768Mi
+      # stops k8s from over-scheduling pods that actually need more.
+      resources:
+        requests:
+          memory: "768Mi"
+          cpu: "250m"
+        limits:
+          memory: "1536Mi"
+          cpu: "2000m"
     sidekiq:
       concurrency: "10"
+      # concurrency:10 doubles the chart default of 5. Bump the memory
+      # limit accordingly so jobs don't OOMKill under load. Chart default
+      # is 1Gi; production gets 2Gi to match the concurrency increase.
+      resources:
+        requests:
+          memory: "512Mi"
+          cpu: "250m"
+        limits:
+          memory: "2Gi"
+          cpu: "1000m"
     nextjs:
       replicas: 2
       command: ["node", "server.js"]
       nodeEnv: production
+      # Node.js server in production mode is lighter than rails. 1Gi
+      # limit gives headroom for SSR cache growth.
+      resources:
+        requests:
+          memory: "256Mi"
+          cpu: "100m"
+        limits:
+          memory: "1Gi"
+          cpu: "1000m"
     mailcatcher:
       enabled: false
     cloudflare:
