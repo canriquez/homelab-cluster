@@ -25,7 +25,7 @@ spec:
         pullSecret: ghcr-credentials
       frontend:
         repository: ghcr.io/canriquez/rayces-frontend
-        tag: "20260525-ab0a12d" # {"$imagepolicy": "flux-system:rayces-frontend:tag"}
+        tag: "20260526-5092439" # {"$imagepolicy": "flux-system:rayces-frontend:tag"}
         pullPolicy: Always
         pullSecret: ghcr-credentials
     rails:
