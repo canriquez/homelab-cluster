@@ -37,9 +37,11 @@ spec:
   secretRef:
     name: ghcr-flux-system-credentials
 ---
-# ImagePolicy — selects latest rayces-backend tag by alphabetical order
-# Tag format: YYYYMMDD-<sha> (e.g. 20260322-f5e7ad7)
-# Alphabetical ascending picks the lexicographically last = most recently built
+# ImagePolicy — selects the newest rayces-backend tag by numeric timestamp.
+# Tag format: YYYYMMDDHHMMSS-<sha> (e.g. 20260530180500-2c7af7d). `extract`
+# pulls the leading timestamp; `numerical asc` picks the largest = most recent.
+# Legacy 8-digit YYYYMMDD-<sha> tags still match and sort below the 14-digit ones.
+# (alphabetical-on-sha could not order two same-day commits — see rayces-v3 CI.)
 apiVersion: image.toolkit.fluxcd.io/v1beta2
 kind: ImagePolicy
 metadata:
@@ -49,12 +51,13 @@ spec:
   imageRepositoryRef:
     name: rayces-backend
   filterTags:
-    pattern: '^[0-9]{8}-[a-f0-9]+'
+    pattern: '^(?P<ts>[0-9]+)-[a-f0-9]+$'
+    extract: '$ts'
   policy:
-    alphabetical:
+    numerical:
       order: asc
 ---
-# ImagePolicy — selects latest rayces-frontend tag by alphabetical order
+# ImagePolicy — selects the newest rayces-frontend tag by numeric timestamp (see backend note)
 apiVersion: image.toolkit.fluxcd.io/v1beta2
 kind: ImagePolicy
 metadata:
@@ -64,9 +67,10 @@ spec:
   imageRepositoryRef:
     name: rayces-frontend
   filterTags:
-    pattern: '^[0-9]{8}-[a-f0-9]+'
+    pattern: '^(?P<ts>[0-9]+)-[a-f0-9]+$'
+    extract: '$ts'
   policy:
-    alphabetical:
+    numerical:
       order: asc
 ---
 # ImageUpdateAutomation — commits new image tags back to homelab-cluster when policies fire
