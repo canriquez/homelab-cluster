@@ -1,0 +1,37 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: rayces-db-dev
+  namespace: rayces-db-dev
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.4   # verify latest patch tag
+  primaryUpdateStrategy: unsupervised
+
+  # CNPG owns the PVC lifecycle (tied to this Cluster CR). The protection here is
+  # the *isolation*: this lives in its own Flux Kustomization (database-dev) — its
+  # prune scope can't be triggered by app/other-env changes. Deleting THIS Cluster
+  # (removing cluster.yaml from git) is what would drop the volume, so treat that
+  # as a deliberate, reviewed action. For dev that's acceptable (no backups, data
+  # is reproducible); staging/prod add real backups as the ultimate safeguard.
+  storage:
+    size: 10Gi
+    storageClass: local-path
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+  bootstrap:
+    initdb:
+      database: raycesv3_development
+      owner: raycesv3
+      secret:
+        name: rayces-db-dev-app
+      # Let the app role create databases so `rails db:test:prepare` works in dev.
+      postInitSQL:
+        - "ALTER ROLE raycesv3 WITH CREATEDB;"

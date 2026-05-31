@@ -1,0 +1,65 @@
+# CloudBeaver — web UI (Apache 2.0) for browsing/querying every CNPG DB.
+# Day-to-day data work lives here; DR (backup/restore/PITR) is driven by CNPG.
+# First access: kubectl -n cnpg-system port-forward svc/cloudbeaver 8978:8978
+#   → http://localhost:8978, complete admin setup, then add Postgres connections to
+#     rayces-db-<env>-rw.rayces-db-<env>.svc.cluster.local:5432.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cloudbeaver-data
+  namespace: cnpg-system
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudbeaver
+  namespace: cnpg-system
+  labels:
+    app: cloudbeaver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloudbeaver
+  template:
+    metadata:
+      labels:
+        app: cloudbeaver
+    spec:
+      containers:
+        - name: cloudbeaver
+          image: dbeaver/cloudbeaver:24.3.0
+          ports:
+            - containerPort: 8978
+          volumeMounts:
+            - name: data
+              mountPath: /opt/cloudbeaver/workspace
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: cloudbeaver-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloudbeaver
+  namespace: cnpg-system
+spec:
+  selector:
+    app: cloudbeaver
+  ports:
+    - port: 8978
+      targetPort: 8978

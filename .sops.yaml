@@ -1,0 +1,7 @@
+# Repo-root SOPS rules — govern every *.yaml in the tree (clusters/, apps/,
+# database/, ...). Only `data`/`stringData` are encrypted; the rest stays
+# readable for review. Same age recipient as clusters/staging/.sops.yaml.
+creation_rules:
+  - path_regex: .*.yaml
+    encrypted_regex: ^(data|stringData)$
+    age: age1c8uz8qzz095uspf99rfpketpcl9fk3zpwtjkts0nx4tyxctjqdyspqzj36

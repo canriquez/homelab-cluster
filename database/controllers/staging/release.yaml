@@ -1,0 +1,25 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cloudnative-pg
+  namespace: cnpg-system
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: cloudnative-pg
+      # Pin to a known minor. Verify the latest with:
+      #   flux create source helm cnpg --url=https://cloudnative-pg.github.io/charts
+      #   helm search repo cloudnative-pg/cloudnative-pg --versions
+      version: "0.22.x"
+      sourceRef:
+        kind: HelmRepository
+        name: cloudnative-pg
+        namespace: cnpg-system
+      interval: 12h
+  install:
+    crds: Create
+  upgrade:
+    crds: CreateReplace
+  # The operator is cluster-scoped; one install serves every CNPG Cluster
+  # in any namespace (rayces-db, and future ones).
