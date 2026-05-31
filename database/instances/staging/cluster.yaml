@@ -1,0 +1,53 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: rayces-db-staging
+  namespace: rayces-db-staging
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.4   # verify latest patch tag
+  primaryUpdateStrategy: unsupervised
+
+  storage:
+    size: 10Gi
+    storageClass: local-path
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+  bootstrap:
+    initdb:
+      database: raycesv3_staging
+      owner: raycesv3
+      secret:
+        name: rayces-db-staging-app
+      # Superuser context (postgres db): let the app role create databases.
+      postInitSQL:
+        - "ALTER ROLE raycesv3 WITH CREATEDB;"
+      # App-owner context (raycesv3_staging): pre-create pgcrypto (trusted in
+      # PG13+) so the data restore's CREATE EXTENSION is a no-op and can't fail.
+      postInitApplicationSQL:
+        - "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
+
+  # Continuous WAL archiving + scheduled base backups → Cloudflare R2 = PITR.
+  backup:
+    barmanObjectStore:
+      destinationPath: "s3://rayces-db-staging-backups/"
+      endpointURL: "https://bae78197ebd9ef2de5ddfc8a93873882.r2.cloudflarestorage.com"
+      s3Credentials:
+        accessKeyId:
+          name: rayces-db-staging-backup-s3
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: rayces-db-staging-backup-s3
+          key: ACCESS_SECRET_KEY
+      wal:
+        compression: gzip
+      data:
+        compression: gzip
+    retentionPolicy: "30d"
