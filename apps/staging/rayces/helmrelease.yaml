@@ -35,7 +35,7 @@ spec:
     images:
       backend:
         repository: ghcr.io/canriquez/rayces-backend
-        tag: "20260601021038-51c79ed" # {"$imagepolicy": "flux-system:rayces-backend:tag"}
+        tag: "20260601022353-1ef030f" # {"$imagepolicy": "flux-system:rayces-backend:tag"}
         pullPolicy: Always
         pullSecret: ghcr-credentials
       frontend:
