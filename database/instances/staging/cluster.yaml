@@ -8,6 +8,14 @@ spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:16.4   # verify latest patch tag
   primaryUpdateStrategy: unsupervised
 
+  # Staging only needs monthly snapshots, not tight PITR — so archive WAL far less
+  # often (1h vs the 300s default) to cut idle WAL object churn to R2 ~12x. Base
+  # backups still archive their own WAL at backup time, so this stays consistent.
+  # (Prod keeps the default 300s for real second-level PITR.)
+  postgresql:
+    parameters:
+      archive_timeout: "3600s"
+
   storage:
     size: 10Gi
     storageClass: local-path
