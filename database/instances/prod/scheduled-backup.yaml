@@ -1,0 +1,12 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: rayces-db-prod-hourly
+  namespace: rayces-db-prod
+spec:
+  # 6-field cron (seconds first). "0 0 * * * *" = top of every hour. WAL archiving
+  # runs continuously between these base backups, so effective RPO is seconds.
+  schedule: "0 0 * * * *"
+  backupOwnerReference: self
+  cluster:
+    name: rayces-db-prod

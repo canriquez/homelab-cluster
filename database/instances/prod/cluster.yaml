@@ -1,0 +1,50 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: rayces-db-prod
+  namespace: rayces-db-prod
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.4   # verify latest patch tag
+  primaryUpdateStrategy: unsupervised
+
+  storage:
+    size: 10Gi
+    storageClass: local-path
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+  bootstrap:
+    initdb:
+      database: raycesv3_production
+      owner: raycesv3
+      secret:
+        name: rayces-db-prod-app
+      # NOTE: pgcrypto is intentionally NOT pre-created here. The data restore
+      # creates it as `raycesv3` (trusted extension + DB owner) so ownership is
+      # correct and the restore runs error-free (unlike staging's pre-create).
+      # No CREATEDB grant either — prod runs no test suite (least privilege).
+
+  # Continuous WAL archiving + hourly base backups → Cloudflare R2 = PITR.
+  backup:
+    barmanObjectStore:
+      destinationPath: "s3://rayces-db-prod-backups/"
+      endpointURL: "https://bae78197ebd9ef2de5ddfc8a93873882.r2.cloudflarestorage.com"
+      s3Credentials:
+        accessKeyId:
+          name: rayces-db-prod-backup-s3
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: rayces-db-prod-backup-s3
+          key: ACCESS_SECRET_KEY
+      wal:
+        compression: gzip
+      data:
+        compression: gzip
+    retentionPolicy: "30d"
