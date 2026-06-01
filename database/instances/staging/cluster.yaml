@@ -50,4 +50,6 @@ spec:
         compression: gzip
       data:
         compression: gzip
-    retentionPolicy: "30d"
+    # Monthly base backups → keep 60d so there's always ≥1 valid backup (the
+    # previous month's) at the moment the new one is taken.
+    retentionPolicy: "60d"
