@@ -17,6 +17,17 @@ spec:
     global:
       namespace: rayces-production
       secretName: raycesv3-environment
+    # Repoint prod at CloudNativePG (rayces-db-prod, DB raycesv3_production). The
+    # rayces-db-connection secret (Flux/SOPS, rayces-production ns) supplies the
+    # POSTGRES_* creds for the dedicated `raycesv3` role and overrides the env secret.
+    # In-chart Postgres stays deployed (postgres.enabled true) for blue/green rollback.
+    # ⚠️ MERGE THIS ONLY DURING THE CUTOVER WINDOW, AFTER the dump/restore — otherwise
+    #    Flux repoints the live app at an empty CNPG DB.
+    externalDb:
+      enabled: true
+      host: "rayces-db-prod-rw.rayces-db-prod.svc.cluster.local"
+      port: 5432
+      secretName: rayces-db-connection
     images:
       backend:
         repository: ghcr.io/canriquez/rayces-backend
