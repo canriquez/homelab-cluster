@@ -35,12 +35,12 @@ spec:
     images:
       backend:
         repository: ghcr.io/canriquez/rayces-backend
-        tag: "20260601022353-1ef030f" # {"$imagepolicy": "flux-system:rayces-backend:tag"}
+        tag: "20260601030728-f58cd50" # {"$imagepolicy": "flux-system:rayces-backend:tag"}
         pullPolicy: Always
         pullSecret: ghcr-credentials
       frontend:
         repository: ghcr.io/canriquez/rayces-frontend
-        tag: "20260601022353-1ef030f" # {"$imagepolicy": "flux-system:rayces-frontend:tag"}
+        tag: "20260601030728-f58cd50" # {"$imagepolicy": "flux-system:rayces-frontend:tag"}
         pullPolicy: Always
         pullSecret: ghcr-credentials
     rails:
