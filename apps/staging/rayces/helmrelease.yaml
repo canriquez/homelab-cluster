@@ -8,6 +8,10 @@ spec:
   chart:
     spec:
       chart: charts/rayces
+      # Re-render on every git revision, not just chart-version bumps — otherwise
+      # chart template changes (e.g. externalDb support) silently don't reach prod
+      # while Chart.yaml version is unchanged.
+      reconcileStrategy: Revision
       sourceRef:
         kind: GitRepository
         name: rayces-v3
