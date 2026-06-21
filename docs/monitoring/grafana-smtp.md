@@ -58,11 +58,20 @@ Delivered as:
 - Holds (all values SOPS-encrypted, key names in plaintext):
   - `SMTP_PASSWORD` — the Brevo SMTP API token
   - `SMTP_USER` — the Brevo SMTP login username
-  - `GF_SECURITY_ADMIN_USER` / `GF_SECURITY_ADMIN_PASSWORD` — Grafana admin credentials (read by Grafana on startup)
+- Injected via `envFromSecret` and read by `grafana.ini` as `$__env{SMTP_USER}` / `$__env{SMTP_PASSWORD}`
 - Encrypted at rest in Git using **SOPS + Age**
   - File: `monitoring/configs/staging/kube-prometheus-stack/grafana-smtp-secret.yaml`
   - Age recipient: `age1c8uz8qzz095uspf99rfpketpcl9fk3zpwtjkts0nx4tyxctjqdyspqzj36`
 - Decrypted and applied to the cluster by the `monitoring-configs` Flux Kustomization (SOPS provider configured)
+
+### 5. Kubernetes Secret — `grafana-admin-credentials`
+- Namespace: `monitoring`
+- Holds (all values SOPS-encrypted, key names in plaintext):
+  - `admin-user` — Grafana admin username (value kept encrypted; not documented in plaintext)
+  - `admin-password` — Grafana admin password (must be a value you know — set it, do not leave random)
+- Wired via the chart's **`admin.existingSecret`** (`userKey: admin-user`, `passwordKey: admin-password`), NOT `envFromSecret`.
+  - Why: the Grafana chart always sets `GF_SECURITY_ADMIN_USER`/`GF_SECURITY_ADMIN_PASSWORD` as explicit `env:` (`valueFrom`), and Kubernetes `env:` overrides `envFrom:`. So admin creds supplied through `envFromSecret` are silently ignored — `admin.existingSecret` is the only mechanism that works.
+- File: `monitoring/configs/staging/kube-prometheus-stack/grafana-admin-secret.yaml`
 
 ---
 
