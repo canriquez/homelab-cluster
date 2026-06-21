@@ -96,7 +96,7 @@ Each application directory uses consistent filenames:
 ## Monitoring Stack
 
 - **Prometheus + Grafana + Alertmanager** via `kube-prometheus-stack` Helm chart
-- Grafana admin login: user `canriquez`; credentials stored encrypted in the `grafana-admin-credentials` secret (keys `admin-user`/`admin-password`), wired via the chart's `admin.existingSecret` (NOT `envFromSecret` — the chart sets `GF_SECURITY_ADMIN_*` as explicit env that overrides envFrom)
+- Grafana admin login: user `churles`; credentials stored encrypted in the `grafana-admin-credentials` secret (keys `admin-user`/`admin-password`), wired via the chart's `admin.existingSecret` (NOT `envFromSecret` — the chart sets `GF_SECURITY_ADMIN_*` as explicit env that overrides envFrom)
 - SMTP login/password stored encrypted in the `grafana-smtp-credentials` secret (keys `SMTP_USER`/`SMTP_PASSWORD`), injected via `envFromSecret` and read by `grafana.ini` as `$__env{...}` — never in plaintext
 - SMTP alerts via **Brevo** (`smtp-relay.brevo.com:587`)
 - Redis ServiceMonitor enabled (30s scrape interval, label: `monitoring` namespace)
