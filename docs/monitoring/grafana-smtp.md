@@ -67,7 +67,7 @@ Delivered as:
 ### 5. Kubernetes Secret — `grafana-admin-credentials`
 - Namespace: `monitoring`
 - Holds (all values SOPS-encrypted, key names in plaintext):
-  - `admin-user` — Grafana admin username (`churles`)
+  - `admin-user` — Grafana admin username (value kept encrypted; not documented in plaintext)
   - `admin-password` — Grafana admin password (must be a value you know — set it, do not leave random)
 - Wired via the chart's **`admin.existingSecret`** (`userKey: admin-user`, `passwordKey: admin-password`), NOT `envFromSecret`.
   - Why: the Grafana chart always sets `GF_SECURITY_ADMIN_USER`/`GF_SECURITY_ADMIN_PASSWORD` as explicit `env:` (`valueFrom`), and Kubernetes `env:` overrides `envFrom:`. So admin creds supplied through `envFromSecret` are silently ignored — `admin.existingSecret` is the only mechanism that works.
