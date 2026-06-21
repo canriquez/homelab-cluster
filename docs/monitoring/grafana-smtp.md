@@ -20,7 +20,7 @@ Grafana Pod (monitoring namespace)
   ▼
 Brevo SMTP Relay
   smtp-relay.brevo.com:587 (STARTTLS)
-  SMTP login: a59261001@smtp-brevo.com
+  SMTP login: injected via $__env{SMTP_USER} (stored in grafana-smtp-credentials)
   │
   ▼
 Delivered as:
@@ -38,7 +38,7 @@ Delivered as:
 - The SMTP password is **never stored in plaintext** — it is read at runtime from an environment variable injected by a Kubernetes Secret
 
 ### 2. Brevo (transactional email provider)
-- Account: `a59261001@smtp-brevo.com` (SMTP credentials username)
+- Account: SMTP username stored in the `grafana-smtp-credentials` secret (key `SMTP_USER`) — never in plaintext
 - SMTP relay: `smtp-relay.brevo.com:587` with MandatoryStartTLS
 - The sending domain `experientialabs.net` is fully authenticated on the Brevo account:
   - **DKIM signature**: configured and verified (`experientialabs.net`)
@@ -55,7 +55,10 @@ Delivered as:
 
 ### 4. Kubernetes Secret — `grafana-smtp-credentials`
 - Namespace: `monitoring`
-- Holds a single key: `SMTP_PASSWORD` — the Brevo SMTP API token
+- Holds (all values SOPS-encrypted, key names in plaintext):
+  - `SMTP_PASSWORD` — the Brevo SMTP API token
+  - `SMTP_USER` — the Brevo SMTP login username
+  - `GF_SECURITY_ADMIN_USER` / `GF_SECURITY_ADMIN_PASSWORD` — Grafana admin credentials (read by Grafana on startup)
 - Encrypted at rest in Git using **SOPS + Age**
   - File: `monitoring/configs/staging/kube-prometheus-stack/grafana-smtp-secret.yaml`
   - Age recipient: `age1c8uz8qzz095uspf99rfpketpcl9fk3zpwtjkts0nx4tyxctjqdyspqzj36`
@@ -75,7 +78,7 @@ grafana:
     smtp:
       enabled: true
       host: smtp-relay.brevo.com:587
-      user: a59261001@smtp-brevo.com        # Brevo SMTP login (not the from address)
+      user: $__env{SMTP_USER}               # Brevo SMTP login, injected from the secret
       from_address: bot@experientialabs.net  # verified sender on Brevo
       from_name: ElBot Grafana Monitoring
       startTLS_policy: MandatoryStartTLS
@@ -92,6 +95,9 @@ metadata:
   namespace: monitoring
 data:
   SMTP_PASSWORD: <SOPS-encrypted Brevo SMTP API token>
+  SMTP_USER: <SOPS-encrypted Brevo SMTP login>
+  GF_SECURITY_ADMIN_USER: <SOPS-encrypted Grafana admin user>
+  GF_SECURITY_ADMIN_PASSWORD: <SOPS-encrypted Grafana admin password>
 ```
 
 The secret is committed encrypted. To rotate the token:
