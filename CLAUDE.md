@@ -96,8 +96,8 @@ Each application directory uses consistent filenames:
 ## Monitoring Stack
 
 - **Prometheus + Grafana + Alertmanager** via `kube-prometheus-stack` Helm chart
-- Grafana admin user: `canriquez`
-- SMTP alerts via **Brevo** (`smtp-relay.brevo.com:587`, from `a59261001@smtp-brevo.com`)
+- Grafana admin credentials and SMTP login are stored encrypted in the `grafana-smtp-credentials` secret (keys `GF_SECURITY_ADMIN_USER`/`GF_SECURITY_ADMIN_PASSWORD`, `SMTP_USER`/`SMTP_PASSWORD`) — never in plaintext
+- SMTP alerts via **Brevo** (`smtp-relay.brevo.com:587`)
 - Redis ServiceMonitor enabled (30s scrape interval, label: `monitoring` namespace)
 
 ## Development Environment

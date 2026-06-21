@@ -31,15 +31,16 @@ spec:
 
   values:
     grafana:
-      adminPassword: canriquez
-
+      # Admin credentials are injected from the SOPS-encrypted secret
+      # grafana-smtp-credentials via envFromSecret below
+      # (GF_SECURITY_ADMIN_USER / GF_SECURITY_ADMIN_PASSWORD).
       envFromSecret: grafana-smtp-credentials
 
       grafana.ini:
         smtp:
           enabled: true
           host: smtp-relay.brevo.com:587
-          user: a59261001@smtp-brevo.com
+          user: $__env{SMTP_USER}
           from_address: bot@experientialabs.net
           from_name: ElBot Grafana Monitoring
           startTLS_policy: MandatoryStartTLS
