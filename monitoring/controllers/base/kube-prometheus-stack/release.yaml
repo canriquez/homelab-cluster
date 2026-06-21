@@ -31,9 +31,17 @@ spec:
 
   values:
     grafana:
-      # Admin credentials are injected from the SOPS-encrypted secret
-      # grafana-smtp-credentials via envFromSecret below
-      # (GF_SECURITY_ADMIN_USER / GF_SECURITY_ADMIN_PASSWORD).
+      # Admin credentials come from the dedicated SOPS-encrypted secret
+      # grafana-admin-credentials. This MUST use admin.existingSecret: the chart
+      # sets GF_SECURITY_ADMIN_USER/PASSWORD as explicit env: (valueFrom), which
+      # override envFrom — so envFromSecret cannot set the admin password.
+      admin:
+        existingSecret: grafana-admin-credentials
+        userKey: admin-user
+        passwordKey: admin-password
+
+      # SMTP user/password come from grafana-smtp-credentials, injected as env
+      # vars (envFrom) and read by grafana.ini via $__env{...} below.
       envFromSecret: grafana-smtp-credentials
 
       grafana.ini:

@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - grafana-tls-secret.yaml
   - grafana-smtp-secret.yaml
+  - grafana-admin-secret.yaml
