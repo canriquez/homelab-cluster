@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+#
+# Pre-commit guard: refuse to commit Kubernetes Secret manifests that are not
+# SOPS-encrypted. Protects against the classic GitOps footgun of committing a
+# secret after `sops --decrypt --in-place` (which strips the `sops:` block).
+#
+# A file is treated as a Secret if its path ends in `-secret.yaml`/`-secret.yml`,
+# lives under a `secrets/` directory, or contains `kind: Secret`.
+#
+# Escape hatch: add a line containing `git-secret-allow-plaintext` to a file that
+# is intentionally committed in plaintext.
+#
+# Enable (once per clone):  git config core.hooksPath .githooks
+#
+set -euo pipefail
+
+fail=0
+while IFS= read -r f; do
+  [ -z "$f" ] && continue
+  case "$f" in
+    *.yaml|*.yml) : ;;
+    *) continue ;;
+  esac
+
+  # Inspect the STAGED content (not the working tree).
+  content="$(git show ":$f" 2>/dev/null || true)"
+  [ -z "$content" ] && continue
+
+  is_secret=0
+  case "$f" in
+    *-secret.yaml|*-secret.yml) is_secret=1 ;;
+    */secrets/*)               is_secret=1 ;;
+  esac
+  printf '%s\n' "$content" | grep -qE '^kind:[[:space:]]+Secret' && is_secret=1
+  [ "$is_secret" -eq 1 ] || continue
+
+  # Intentional-plaintext escape hatch.
+  printf '%s\n' "$content" | grep -q 'git-secret-allow-plaintext' && continue
+
+  # SOPS-encrypted files carry a top-level `sops:` block and `ENC[...]` values.
+  if printf '%s\n' "$content" | grep -qE '^sops:' \
+     && printf '%s\n' "$content" | grep -q 'ENC\['; then
+    continue
+  fi
+
+  echo "✖ BLOCKED: '$f' looks like a Secret but is NOT SOPS-encrypted."
+  fail=1
+done < <(git diff --cached --name-only --diff-filter=ACM)
+
+if [ "$fail" -ne 0 ]; then
+  echo
+  echo "Encrypt before committing:"
+  echo "  sops --age=\$AGE_PUBLIC --encrypt --encrypted-regex '^(data|stringData)\$' --in-place <file>"
+  echo "Intentionally plaintext? Add a line containing: git-secret-allow-plaintext"
+  exit 1
+fi
+exit 0

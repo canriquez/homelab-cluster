@@ -1,0 +1,24 @@
+# macOS
+.DS_Store
+
+# Editor / IDE
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# SOPS / Age — never commit private keys or decrypted material.
+# NOTE: encrypted *-secret.yaml files ARE committed; these patterns target keys
+# and decrypted-output conventions only.
+keys.txt
+*.agekey
+age-key*.txt
+*.dec
+*.dec.yaml
+*.decrypted.yaml
+*.plain.yaml
+*.plaintext.yaml
+
+# Local env
+.env
+.env.*
