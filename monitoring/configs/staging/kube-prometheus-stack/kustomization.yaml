@@ -5,3 +5,5 @@ resources:
   - grafana-smtp-secret.yaml
   - grafana-admin-secret.yaml
   - alertmanager-deadman-secret.yaml
+  - alertmanager-ntfy-secret.yaml
+  - alertmanager-email-secret.yaml

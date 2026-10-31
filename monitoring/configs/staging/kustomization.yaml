@@ -3,3 +3,5 @@ kind: Kustomization
 resources:
   - kube-prometheus-stack/
   - rayces-postgres-servicemonitor.yaml
+  - rayces-alert-rules.yaml
+  - rayces-db-prod-podmonitor.yaml

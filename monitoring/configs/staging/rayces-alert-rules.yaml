@@ -1,0 +1,123 @@
+# RAY-131 starter alert rules. page="true" sends an urgent ntfy push
+# (see alertmanager routing in monitoring/controllers/base/kube-prometheus-stack/release.yaml);
+# every warning/critical alert is also e-mailed.
+# Not here yet: Rails 5xx rate and Sidekiq dead/latency (no app metrics until RAY-134);
+# certificate expiry (no cert-manager; public certificates are Cloudflare-managed).
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: rayces-alert-rules
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack   # Must match Prometheus ruleSelector
+spec:
+  groups:
+    - name: rayces-production
+      rules:
+        - alert: RaycesDeploymentDown
+          expr: |
+            kube_deployment_status_replicas_available{namespace="rayces-production"} == 0
+            and on (namespace, deployment)
+            kube_deployment_spec_replicas{namespace="rayces-production"} > 0
+          for: 3m
+          labels:
+            severity: critical
+            page: "true"
+          annotations:
+            summary: "Production deployment {{ $labels.deployment }} has no ready pods"
+            description: "{{ $labels.namespace }}/{{ $labels.deployment }} has had 0 available replicas for 3 minutes."
+        - alert: RaycesPodCrashLooping
+          expr: |
+            max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", namespace=~"rayces-production|rayces-db-prod"}[5m]) >= 1
+          for: 5m
+          labels:
+            severity: critical
+            page: "true"
+          annotations:
+            summary: "Production pod {{ $labels.pod }} is crash-looping"
+            description: "{{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} has been in CrashLoopBackOff for 5 minutes."
+
+    - name: rayces-database
+      rules:
+        - alert: RaycesDatabaseDown
+          expr: |
+            sum(kube_pod_status_ready{namespace="rayces-db-prod", condition="true", pod=~"rayces-db-prod-[0-9]+"}) == 0
+            or absent(kube_pod_status_ready{namespace="rayces-db-prod", condition="true", pod=~"rayces-db-prod-[0-9]+"})
+          for: 2m
+          labels:
+            severity: critical
+            page: "true"
+            namespace: rayces-db-prod
+          annotations:
+            summary: "Production database has no ready instance"
+            description: "No rayces-db-prod CNPG instance pod has been Ready for 2 minutes."
+        - alert: RaycesDatabaseExporterDown
+          expr: cnpg_collector_up{namespace="rayces-db-prod"} == 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "CNPG cannot reach PostgreSQL on {{ $labels.pod }}"
+            description: "cnpg_collector_up has been 0 for 5 minutes on {{ $labels.namespace }}/{{ $labels.pod }}."
+        - alert: RaycesBackupFailed
+          expr: |
+            cnpg_collector_last_failed_backup_timestamp{namespace="rayces-db-prod"}
+            > cnpg_collector_last_available_backup_timestamp{namespace="rayces-db-prod"}
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Latest production backup failed"
+            description: "The most recent rayces-db-prod backup attempt failed after the last successful one."
+        - alert: RaycesBackupStale
+          expr: |
+            max(time() - cnpg_collector_last_available_backup_timestamp{namespace="rayces-db-prod"}) > 3 * 3600
+          for: 15m
+          labels:
+            severity: critical
+            page: "true"
+            namespace: rayces-db-prod
+          annotations:
+            summary: "No successful production backup for over 3 hours"
+            description: "Backups are hourly; the newest available rayces-db-prod backup is {{ $value | humanizeDuration }} old."
+        - alert: RaycesWalArchivingFailing
+          expr: increase(cnpg_pg_stat_archiver_failed_count{namespace="rayces-db-prod"}[30m]) > 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Production WAL archiving is failing"
+            description: "PostgreSQL on {{ $labels.pod }} reported failed WAL archive attempts in the last 30 minutes."
+
+    - name: rayces-node
+      rules:
+        - alert: NodeDiskUsageHigh
+          expr: |
+            (1 - node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs|ramfs", mountpoint!~"/boot.*|/run.*"}
+                 / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs|ramfs", mountpoint!~"/boot.*|/run.*"}) > 0.80
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Disk {{ $labels.mountpoint }} on {{ $labels.instance }} is over 80% full"
+            description: "{{ $labels.mountpoint }} is {{ $value | humanizePercentage }} used."
+        - alert: NodeDiskUsageCritical
+          expr: |
+            (1 - node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs|ramfs", mountpoint!~"/boot.*|/run.*"}
+                 / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs|ramfs", mountpoint!~"/boot.*|/run.*"}) > 0.90
+          for: 10m
+          labels:
+            severity: critical
+            page: "true"
+          annotations:
+            summary: "Disk {{ $labels.mountpoint }} on {{ $labels.instance }} is over 90% full"
+            description: "{{ $labels.mountpoint }} is {{ $value | humanizePercentage }} used."
+        - alert: NodeUnderPressure
+          expr: kube_node_status_condition{condition=~"MemoryPressure|DiskPressure|PIDPressure", status="true"} == 1
+          for: 2m
+          labels:
+            severity: critical
+            page: "true"
+          annotations:
+            summary: "Node {{ $labels.node }} reports {{ $labels.condition }}"
+            description: "The kubelet on {{ $labels.node }} has reported {{ $labels.condition }} for 2 minutes; pods may be evicted."

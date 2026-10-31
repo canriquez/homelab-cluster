@@ -1,0 +1,20 @@
+# RAY-131: scrape the CNPG exporter (port "metrics", 9187) of the production
+# database instances so backup/WAL alerts in rayces-alert-rules.yaml have data.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: rayces-db-prod
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack   # Must match Prometheus podMonitorSelector
+spec:
+  namespaceSelector:
+    matchNames:
+      - rayces-db-prod
+  selector:
+    matchLabels:
+      cnpg.io/cluster: rayces-db-prod
+  podMetricsEndpoints:
+    - port: metrics
+      interval: 30s
+      scrapeTimeout: 10s

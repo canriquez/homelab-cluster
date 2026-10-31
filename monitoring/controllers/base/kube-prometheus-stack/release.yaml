@@ -30,21 +30,54 @@ spec:
           kind: PrometheusRule
 
   values:
-    # RAY-130 dead-man's switch: the always-firing Watchdog alert pings an
-    # external Healthchecks.io check every minute; if the pings stop (cluster,
-    # Prometheus or Alertmanager down) Healthchecks.io alerts by e-mail + phone.
-    # The ping URL lives in the SOPS secret alertmanager-deadman (key "url",
-    # monitoring/configs/staging/kube-prometheus-stack/alertmanager-deadman-secret.yaml),
-    # mounted at /etc/alertmanager/secrets/alertmanager-deadman/.
-    # Every other alert still goes to "null" until RAY-131 adds real routing.
+    # k3s runs controller-manager, scheduler and kube-proxy inside the k3s
+    # process; their metrics endpoints are not scrapable, so the default
+    # *Down alerts fire forever (critical). Disabling the scrape also drops
+    # those alerts (RAY-131).
+    kubeControllerManager:
+      enabled: false
+    kubeScheduler:
+      enabled: false
+    kubeProxy:
+      enabled: false
+
+    # Alert routing (RAY-130 dead-man's switch + RAY-131 severity routing):
+    # - Watchdog (always firing) pings Healthchecks.io; silence = alarm.
+    # - Paging (ntfy push, urgent): alerts labelled page="true" (our rules in
+    #   monitoring/configs/staging/rayces-alert-rules.yaml) and any critical
+    #   alert from the production namespaces.
+    # - E-mail via Brevo SMTP: every critical and warning alert (daily repeat).
+    # - info / InfoInhibitor: nowhere.
+    # Secrets (SOPS, monitoring/configs/staging/kube-prometheus-stack/), mounted
+    # at /etc/alertmanager/secrets/<name>/<key>:
+    #   alertmanager-deadman/url  Healthchecks.io ping URL
+    #   alertmanager-ntfy/url     ntfy topic URL (?template=alertmanager&priority=urgent)
+    #   grafana-smtp-credentials/SMTP_PASSWORD  Brevo SMTP key (shared with Grafana)
+    #   alertmanager-email/recipients.tmpl  defines "rayces.warning_to" (warning
+    #     recipient address, kept out of git plaintext; used by the email receiver)
     alertmanager:
       alertmanagerSpec:
         secrets:
           - alertmanager-deadman
+          - alertmanager-ntfy
+          - grafana-smtp-credentials
+          - alertmanager-email
       config:
+        global:
+          smtp_smarthost: smtp-relay.brevo.com:587
+          smtp_from: ElBot Alertmanager <bot@experientialabs.net>
+          smtp_auth_username: a59261001@smtp-brevo.com
+          smtp_auth_password_file: /etc/alertmanager/secrets/grafana-smtp-credentials/SMTP_PASSWORD
+          smtp_require_tls: true
+        templates:
+          - /etc/alertmanager/config/*.tmpl
+          - /etc/alertmanager/secrets/alertmanager-email/*.tmpl
         route:
           receiver: "null"
           group_by: ["alertname", "namespace"]
+          group_wait: 30s
+          group_interval: 5m
+          repeat_interval: 24h
           routes:
             - matchers:
                 - alertname = "Watchdog"
@@ -52,12 +85,38 @@ spec:
               group_wait: 0s
               group_interval: 1m
               repeat_interval: 1m
+            - matchers:
+                - alertname = "InfoInhibitor"
+              receiver: "null"
+            - matchers:
+                - page = "true"
+              receiver: ntfy-critical
+              repeat_interval: 4h
+              continue: true
+            - matchers:
+                - severity = "critical"
+                - namespace =~ "rayces-production|rayces-db-prod"
+                - page != "true"
+              receiver: ntfy-critical
+              repeat_interval: 4h
+              continue: true
+            - matchers:
+                - severity =~ "critical|warning"
+              receiver: email
         receivers:
           - name: "null"
           - name: deadman
             webhook_configs:
               - url_file: /etc/alertmanager/secrets/alertmanager-deadman/url
                 send_resolved: false
+          - name: ntfy-critical
+            webhook_configs:
+              - url_file: /etc/alertmanager/secrets/alertmanager-ntfy/url
+                send_resolved: true
+          - name: email
+            email_configs:
+              - to: '{{ template "rayces.warning_to" . }}'
+                send_resolved: true
 
     grafana:
       # Admin credentials come from the dedicated SOPS-encrypted secret
