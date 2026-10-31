@@ -65,7 +65,7 @@ spec:
       config:
         global:
           smtp_smarthost: smtp-relay.brevo.com:587
-          smtp_from: ElBot Alertmanager <bot@experientialabs.net>
+          smtp_from: ExperientiaLabs Alerts <bot@experientialabs.net>
           smtp_auth_username: a59261001@smtp-brevo.com
           smtp_auth_password_file: /etc/alertmanager/secrets/grafana-smtp-credentials/SMTP_PASSWORD
           smtp_require_tls: true
