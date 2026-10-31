@@ -30,6 +30,35 @@ spec:
           kind: PrometheusRule
 
   values:
+    # RAY-130 dead-man's switch: the always-firing Watchdog alert pings an
+    # external Healthchecks.io check every minute; if the pings stop (cluster,
+    # Prometheus or Alertmanager down) Healthchecks.io alerts by e-mail + phone.
+    # The ping URL lives in the SOPS secret alertmanager-deadman (key "url",
+    # monitoring/configs/staging/kube-prometheus-stack/alertmanager-deadman-secret.yaml),
+    # mounted at /etc/alertmanager/secrets/alertmanager-deadman/.
+    # Every other alert still goes to "null" until RAY-131 adds real routing.
+    alertmanager:
+      alertmanagerSpec:
+        secrets:
+          - alertmanager-deadman
+      config:
+        route:
+          receiver: "null"
+          group_by: ["alertname", "namespace"]
+          routes:
+            - matchers:
+                - alertname = "Watchdog"
+              receiver: deadman
+              group_wait: 0s
+              group_interval: 1m
+              repeat_interval: 1m
+        receivers:
+          - name: "null"
+          - name: deadman
+            webhook_configs:
+              - url_file: /etc/alertmanager/secrets/alertmanager-deadman/url
+                send_resolved: false
+
     grafana:
       # Admin credentials come from the dedicated SOPS-encrypted secret
       # grafana-admin-credentials. This MUST use admin.existingSecret: the chart
