@@ -4,3 +4,4 @@ resources:
   - grafana-tls-secret.yaml
   - grafana-smtp-secret.yaml
   - grafana-admin-secret.yaml
+  - alertmanager-deadman-secret.yaml
