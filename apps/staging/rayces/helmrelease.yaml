@@ -24,9 +24,12 @@ spec:
     # Repoint prod at CloudNativePG (rayces-db-prod, DB raycesv3_production). The
     # rayces-db-connection secret (Flux/SOPS, rayces-production ns) supplies the
     # POSTGRES_* creds for the dedicated `raycesv3` role and overrides the env secret.
-    # In-chart Postgres stays deployed (postgres.enabled true) for blue/green rollback.
-    # ⚠️ MERGE THIS ONLY DURING THE CUTOVER WINDOW, AFTER the dump/restore — otherwise
-    #    Flux repoints the live app at an empty CNPG DB.
+    # The legacy in-chart Postgres (postgres.enabled) is retired: CNPG has served
+    # production since the cutover and the Phase 2 release (2026-11-16) ran its
+    # migrations there. Final encrypted dump of the legacy DB, restore-tested:
+    # legacy-postgres-rayces-raycesv3_production-20261116-1338.dump.age (Carlos's
+    # backups, age key = SOPS key). Disabling deletes the Deployment, its Services
+    # and the PVC rayces-data (local-path: the volume data is deleted with it).
     externalDb:
       enabled: true
       host: "rayces-db-prod-rw.rayces-db-prod.svc.cluster.local"
@@ -93,12 +96,8 @@ spec:
       ingress:
         appHostname: citas.rayces.com
     postgres:
+      # Retired legacy in-chart Postgres (see the externalDb comment above).
+      # Frees 110m CPU / 288Mi memory of requests on the node.
+      enabled: false
       metrics:
-        enabled: true
-      resources:
-        requests:
-          memory: "256Mi"
-          cpu: "100m"
-        limits:
-          memory: "1Gi"
-          cpu: "1000m"
+        enabled: false
